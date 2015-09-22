@@ -75,15 +75,22 @@ img_mean = torch.load(img_mean_name).img_mean:transpose(3,1)
 
 fileDir = '/Users/yusheng/data/fooling_img/confident_fooling'
 fileList, total_files = scandir( fileDir )
-local cnncode = torch.DoubleTensor( 4096, total_files ):zero()
+cnncodes = torch.DoubleTensor( total_files, 4096 ):zero()
 
---for i=1,total_files do
-    im = image.load( fileDir..'/'..fileList[1] )
+for i=1,total_files do
+    im = image.load( fileDir..'/'..fileList[i] )
     I = preprocess(im, img_mean)
     sorted_prob = net:forward(I:cuda()):view(-1):float():sort(true)
-    cnncode[{{},{1}}] = net:get(20).output:double():contiguous()
---end
+    cnncodes[i] = net:get(20).output:double():contiguous()
+end
 
-print( net:get(20).output:size())
-print( cnncode:view() )
+print('Codes extracting finish!')
+
+local matio = require 'matio'
+
+print(cnncodes:type())
+
+matio.save('cnncodes_for_fooling.mat', cnncodes )
+--print(cnncode:size())
 print('finish')
+
